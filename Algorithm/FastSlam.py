@@ -150,6 +150,7 @@ class Particle:
         self.og.plotOccupancyGrid([-13, 20], [-25, 7], plotThreshold=False)
 
 def processSensorData(pf, sensorData, plotTrajectory = True):
+    xRange, yRange = [-55, 55], [-40, 40]  # 新范围
     # gtData = readJson("../DataSet/PreprocessedData/intel_corrected_log") #########   For Debug Only  #############
     count = 0
     plt.figure(figsize=(19.20, 19.20))
@@ -169,7 +170,9 @@ def processSensorData(pf, sensorData, plotTrajectory = True):
                 bestParticle = particle
                 plt.plot(particle.xTrajectory, particle.yTrajectory)
 
-        xRange, yRange = [-13, 20], [-25, 7]
+        # xRange, yRange = [-13, 20], [-25, 7]
+        # xRange, yRange = [-55, 55], [-40, 40]  # 新范围
+        # xRange, yRange = [-52.19, 45.35], [-34.56, 38.71]
         ogMap = bestParticle.og.occupancyGridVisited / bestParticle.og.occupancyGridTotal
         xIdx, yIdx = bestParticle.og.convertRealXYToMapIdx(xRange, yRange)
         ogMap = ogMap[yIdx[0]: yIdx[1], xIdx[0]: xIdx[1]]
@@ -194,10 +197,10 @@ def readJson(jsonFile):
         return input['map']
 
 def main():
-    initMapXLength, initMapYLength, unitGridSize, lidarFOV, lidarMaxRange = 50, 50, 0.02, np.pi, 10  # in Meters
+    initMapXLength, initMapYLength, unitGridSize, lidarFOV, lidarMaxRange = 130, 130, 0.02, np.pi, 10  # in Meters
     scanMatchSearchRadius, scanMatchSearchHalfRad, scanSigmaInNumGrid, wallThickness, moveRSigma, maxMoveDeviation, turnSigma, \
         missMatchProbAtCoarse, coarseFactor = 1.4, 0.25, 2, 5 * unitGridSize, 0.1, 0.25, 0.3, 0.15, 5
-    sensorData = readJson("../DataSet/PreprocessedData/intel_gfs")
+    sensorData = readJson("../DataSet/PreprocessedData/fr079_gfs")
     numSamplesPerRev = len(sensorData[list(sensorData)[0]]['range'])  # Get how many points per revolution
     initXY = sensorData[sorted(sensorData.keys())[0]]
     numParticles = 10
