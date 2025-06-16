@@ -201,7 +201,7 @@ def main():
     initMapXLength, initMapYLength, unitGridSize, lidarFOV, lidarMaxRange = 50, 50, 0.02, np.pi, 10  # in Meters
     scanMatchSearchRadius, scanMatchSearchHalfRad, scanSigmaInNumGrid, wallThickness, moveRSigma, maxMoveDeviation, turnSigma, \
         missMatchProbAtCoarse, coarseFactor = 1.4, 0.25, 2, 5 * unitGridSize, 0.1, 0.25, 0.3, 0.15, 5
-    sensorData = readJson("../DataSet/PreprocessedData/aces_gfs")
+    sensorData = readJson("../DataSet/PreprocessedData/aces_gfs_cleaned")
     numSamplesPerRev = len(sensorData[list(sensorData)[0]]['range'])  # Get how many points per revolution
     initXY = sensorData[sorted(sensorData.keys())[0]]
     numParticles = 10
