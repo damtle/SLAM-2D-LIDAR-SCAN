@@ -163,13 +163,17 @@ def processSensorData(pf, sensorData, plotTrajectory = True):
 
         plt.figure(figsize=(19.20, 19.20))
         maxWeight = -1
+        bestParticle = None
         for particle in pf.particles:
             if maxWeight < particle.weight:
                 maxWeight = particle.weight
                 bestParticle = particle
                 plt.plot(particle.xTrajectory, particle.yTrajectory)
 
-        xRange, yRange = [-13, 20], [-25, 7]
+        # xRange, yRange = [-13, 20], [-25, 7]
+        # xRange, yRange = [530, 620], [-40, 15]
+        xRange = bestParticle.og.mapXLim
+        yRange = bestParticle.og.mapYLim
         ogMap = bestParticle.og.occupancyGridVisited / bestParticle.og.occupancyGridTotal
         xIdx, yIdx = bestParticle.og.convertRealXYToMapIdx(xRange, yRange)
         ogMap = ogMap[yIdx[0]: yIdx[1], xIdx[0]: xIdx[1]]
@@ -197,7 +201,7 @@ def main():
     initMapXLength, initMapYLength, unitGridSize, lidarFOV, lidarMaxRange = 50, 50, 0.02, np.pi, 10  # in Meters
     scanMatchSearchRadius, scanMatchSearchHalfRad, scanSigmaInNumGrid, wallThickness, moveRSigma, maxMoveDeviation, turnSigma, \
         missMatchProbAtCoarse, coarseFactor = 1.4, 0.25, 2, 5 * unitGridSize, 0.1, 0.25, 0.3, 0.15, 5
-    sensorData = readJson("../DataSet/PreprocessedData/intel_gfs")
+    sensorData = readJson("../DataSet/PreprocessedData/aces_gfs")
     numSamplesPerRev = len(sensorData[list(sensorData)[0]]['range'])  # Get how many points per revolution
     initXY = sensorData[sorted(sensorData.keys())[0]]
     numParticles = 10
