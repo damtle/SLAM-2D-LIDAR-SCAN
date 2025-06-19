@@ -140,6 +140,7 @@ class Particle:
         self.yTrajectory.append(y)
 
     def plotParticle(self):
+        return
         plt.figure(figsize=(19.20, 19.20))
         plt.scatter(self.xTrajectory[0], self.yTrajectory[0], color='r', s=500)
         colors = iter(cm.rainbow(np.linspace(1, 0, len(self.xTrajectory) + 1)))
@@ -148,6 +149,21 @@ class Particle:
         plt.scatter(self.xTrajectory[-1], self.yTrajectory[-1], color=next(colors), s=500)
         plt.plot(self.xTrajectory, self.yTrajectory)
         self.og.plotOccupancyGrid([-13, 20], [-25, 7], plotThreshold=False)
+
+def saveTrajectoryAsFlaserLog(particle, timestampList, outputFile):
+    with open(outputFile, 'w') as f:
+        for i in range(len(particle.xTrajectory)):
+            x = particle.xTrajectory[i]
+            y = particle.yTrajectory[i]
+            theta = 0.0  # 你可以存真实 theta，如果你在 Particle 里存了每步 theta
+            timestamp = float(timestampList[i])
+            num_readings = 0
+            ranges = []  # 如果你没有保存雷达数据，可以设置为空或用零填充
+            range_str = ' '.join([str(r) for r in ranges])
+            # FLASER 格式：FLASER <num> <range_readings...> x y theta odom_x odom_y odom_theta timestamp hostname logger_timestamp
+            line = f"FLASER {num_readings} {range_str} {x} {y} {theta} {x} {y} {theta} {timestamp} localhost 0\n"
+            f.write(line)
+
 
 def processSensorData(pf, sensorData, plotTrajectory = True):
     # gtData = readJson("../DataSet/PreprocessedData/intel_corrected_log") #########   For Debug Only  #############
@@ -198,10 +214,11 @@ def readJson(jsonFile):
         return input['map']
 
 def main():
+    mapName = "intel"
     initMapXLength, initMapYLength, unitGridSize, lidarFOV, lidarMaxRange = 50, 50, 0.02, np.pi, 10  # in Meters
     scanMatchSearchRadius, scanMatchSearchHalfRad, scanSigmaInNumGrid, wallThickness, moveRSigma, maxMoveDeviation, turnSigma, \
         missMatchProbAtCoarse, coarseFactor = 1.4, 0.25, 2, 5 * unitGridSize, 0.1, 0.25, 0.3, 0.15, 5
-    sensorData = readJson("../DataSet/PreprocessedData/aces_gfs_cleaned")
+    sensorData = readJson("../DataSet/PreprocessedData/" + mapName + "_clf")
     numSamplesPerRev = len(sensorData[list(sensorData)[0]]['range'])  # Get how many points per revolution
     initXY = sensorData[sorted(sensorData.keys())[0]]
     numParticles = 10
@@ -210,6 +227,12 @@ def main():
         missMatchProbAtCoarse, coarseFactor]
     pf = ParticleFilter(numParticles, ogParameters, smParameters)
     processSensorData(pf, sensorData, plotTrajectory=True)
+
+    # # 获取最优粒子
+    bestParticle = max(pf.particles, key=lambda p: p.weight)
+    timestampList = sorted(sensorData.keys())
+    saveTrajectoryAsFlaserLog(bestParticle, timestampList, "slam.log")
+
 
 if __name__ == '__main__':
     main()

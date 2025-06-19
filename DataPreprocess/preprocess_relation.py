@@ -1,8 +1,8 @@
 import json
 
 
-inputRelationFile = "DataSet/intel.relations"
-outputFile = "DataSet/intel_relation_processed"
+inputRelationFile = "../DataSet/RawData/intel.relations"
+outputFile = "../DataSet/PreprocessedData/intel_relation_processed"
 
 relation_timeStamp1 = {}
 relation_timeStamp2 = {}
