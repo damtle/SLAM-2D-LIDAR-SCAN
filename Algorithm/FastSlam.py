@@ -165,7 +165,7 @@ def saveTrajectoryAsFlaserLog(particle, timestampList, outputFile):
             f.write(line)
 
 
-def processSensorData(pf, sensorData, plotTrajectory = True):
+def processSensorData(pf, sensorData, plotTrajectory = True, i = None):
     # gtData = readJson("../DataSet/PreprocessedData/intel_corrected_log") #########   For Debug Only  #############
     count = 0
     plt.figure(figsize=(19.20, 19.20))
@@ -195,7 +195,11 @@ def processSensorData(pf, sensorData, plotTrajectory = True):
         ogMap = ogMap[yIdx[0]: yIdx[1], xIdx[0]: xIdx[1]]
         ogMap = np.flipud(1 - ogMap)
         plt.imshow(ogMap, cmap='gray', extent=[xRange[0], xRange[1], yRange[0], yRange[1]])
-        plt.savefig('../Output/' + str(count).zfill(3) + '.png')
+        if i is None:
+            plt.savefig('../Output/' + str(count).zfill(3) + '.png')
+        else:
+            plt.savefig('../Output/'+ str(i) + "_" + str(count).zfill(3) + '.png')
+
         plt.close()
 
         #if count == 100:
@@ -214,24 +218,25 @@ def readJson(jsonFile):
         return input['map']
 
 def main():
-    mapName = "intel"
-    initMapXLength, initMapYLength, unitGridSize, lidarFOV, lidarMaxRange = 50, 50, 0.02, np.pi, 10  # in Meters
-    scanMatchSearchRadius, scanMatchSearchHalfRad, scanSigmaInNumGrid, wallThickness, moveRSigma, maxMoveDeviation, turnSigma, \
-        missMatchProbAtCoarse, coarseFactor = 1.4, 0.25, 2, 5 * unitGridSize, 0.1, 0.25, 0.3, 0.15, 5
-    sensorData = readJson("../DataSet/PreprocessedData/" + mapName + "_clf")
-    numSamplesPerRev = len(sensorData[list(sensorData)[0]]['range'])  # Get how many points per revolution
-    initXY = sensorData[sorted(sensorData.keys())[0]]
-    numParticles = 10
-    ogParameters = [initMapXLength, initMapYLength, initXY, unitGridSize, lidarFOV, lidarMaxRange, numSamplesPerRev, wallThickness]
-    smParameters = [scanMatchSearchRadius, scanMatchSearchHalfRad, scanSigmaInNumGrid, moveRSigma, maxMoveDeviation, turnSigma, \
-        missMatchProbAtCoarse, coarseFactor]
-    pf = ParticleFilter(numParticles, ogParameters, smParameters)
-    processSensorData(pf, sensorData, plotTrajectory=True)
+    for i in range(5):
+        mapName = "fr079"
+        initMapXLength, initMapYLength, unitGridSize, lidarFOV, lidarMaxRange = 50, 50, 0.02, np.pi, 10  # in Meters
+        scanMatchSearchRadius, scanMatchSearchHalfRad, scanSigmaInNumGrid, wallThickness, moveRSigma, maxMoveDeviation, turnSigma, \
+            missMatchProbAtCoarse, coarseFactor = 1.4, 0.25, 2, 5 * unitGridSize, 0.1, 0.25, 0.3, 0.15, 5
+        sensorData = readJson("../DataSet/PreprocessedData/" + mapName + "_gfs")
+        numSamplesPerRev = len(sensorData[list(sensorData)[0]]['range'])  # Get how many points per revolution
+        initXY = sensorData[sorted(sensorData.keys())[0]]
+        numParticles = 10
+        ogParameters = [initMapXLength, initMapYLength, initXY, unitGridSize, lidarFOV, lidarMaxRange, numSamplesPerRev, wallThickness]
+        smParameters = [scanMatchSearchRadius, scanMatchSearchHalfRad, scanSigmaInNumGrid, moveRSigma, maxMoveDeviation, turnSigma, \
+            missMatchProbAtCoarse, coarseFactor]
+        pf = ParticleFilter(numParticles, ogParameters, smParameters)
+        processSensorData(pf, sensorData, plotTrajectory=True, i=i)
 
-    # # 获取最优粒子
-    bestParticle = max(pf.particles, key=lambda p: p.weight)
-    timestampList = sorted(sensorData.keys())
-    saveTrajectoryAsFlaserLog(bestParticle, timestampList, "slam.log")
+        # # 获取最优粒子
+        bestParticle = max(pf.particles, key=lambda p: p.weight)
+        timestampList = sorted(sensorData.keys())
+        saveTrajectoryAsFlaserLog(bestParticle, timestampList, "slam" + str(i) + ".log")
 
 
 if __name__ == '__main__':
